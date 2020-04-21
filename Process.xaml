@@ -1,0 +1,180 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="Process" xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities" xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation" xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation" xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib" xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib" xmlns:ui="http://schemas.uipath.com/workflow/activities" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <x:Members>
+    <x:Property sap2010:Annotation.AnnotationText="Transaction item to be processed." Name="in_TransactionItem" Type="InArgument(ui:QueueItem)" />
+    <x:Property sap2010:Annotation.AnnotationText="Dictionary structure to store configuration data of the process (settings, constants and assets)." Name="in_Config" Type="InArgument(scg:Dictionary(x:String, x:Object))" />
+    <x:Property Name="emailBody" Type="InArgument(x:String)" />
+    <x:Property Name="Con" Type="InArgument(ui:DatabaseConnection)" />
+    <x:Property Name="emailSender" Type="InArgument(x:String)" />
+  </x:Members>
+  <mva:VisualBasic.Settings>
+    <x:Null />
+  </mva:VisualBasic.Settings>
+  <sap:VirtualizedContainerService.HintSize>1156,2002</sap:VirtualizedContainerService.HintSize>
+  <sap2010:WorkflowViewState.IdRef>ProcessTransaction_1</sap2010:WorkflowViewState.IdRef>
+  <TextExpression.NamespacesForImplementation>
+    <sco:Collection x:TypeArguments="x:String">
+      <x:String>System.Activities</x:String>
+      <x:String>System.Activities.Statements</x:String>
+      <x:String>System.Activities.Expressions</x:String>
+      <x:String>System.Activities.Validation</x:String>
+      <x:String>System.Activities.XamlIntegration</x:String>
+      <x:String>Microsoft.VisualBasic</x:String>
+      <x:String>Microsoft.VisualBasic.Activities</x:String>
+      <x:String>System</x:String>
+      <x:String>System.Collections</x:String>
+      <x:String>System.Collections.Generic</x:String>
+      <x:String>System.Data</x:String>
+      <x:String>System.Diagnostics</x:String>
+      <x:String>System.Drawing</x:String>
+      <x:String>System.IO</x:String>
+      <x:String>System.Linq</x:String>
+      <x:String>System.Net.Mail</x:String>
+      <x:String>System.Xml</x:String>
+      <x:String>System.Xml.Linq</x:String>
+      <x:String>UiPath.Core</x:String>
+      <x:String>UiPath.Core.Activities</x:String>
+      <x:String>System.Windows.Markup</x:String>
+      <x:String>UiPath.Database</x:String>
+    </sco:Collection>
+  </TextExpression.NamespacesForImplementation>
+  <TextExpression.ReferencesForImplementation>
+    <sco:Collection x:TypeArguments="AssemblyReference">
+      <AssemblyReference>System.Activities</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualBasic</AssemblyReference>
+      <AssemblyReference>mscorlib</AssemblyReference>
+      <AssemblyReference>System.Data</AssemblyReference>
+      <AssemblyReference>System</AssemblyReference>
+      <AssemblyReference>System.Drawing</AssemblyReference>
+      <AssemblyReference>System.Core</AssemblyReference>
+      <AssemblyReference>System.Xml</AssemblyReference>
+      <AssemblyReference>System.Xml.Linq</AssemblyReference>
+      <AssemblyReference>PresentationFramework</AssemblyReference>
+      <AssemblyReference>WindowsBase</AssemblyReference>
+      <AssemblyReference>PresentationCore</AssemblyReference>
+      <AssemblyReference>System.Xaml</AssemblyReference>
+      <AssemblyReference>System.ComponentModel.Composition</AssemblyReference>
+      <AssemblyReference>System.ServiceModel</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualStudio.Services.Common</AssemblyReference>
+      <AssemblyReference>UiPath.System.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.UiAutomation.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.Database</AssemblyReference>
+      <AssemblyReference>System.ValueTuple</AssemblyReference>
+      <AssemblyReference>UiPath.Mail</AssemblyReference>
+    </sco:Collection>
+  </TextExpression.ReferencesForImplementation>
+  <Sequence sap2010:Annotation.AnnotationText="Invoke major steps of the business process, which are usually implemented by multiple subworkflows.&#xA;&#xA;If a BusinessRuleException is thrown, the transaction is skipped. &#xA;If another kind of exception occurs, the current transaction can be retried. " DisplayName="Process" sap:VirtualizedContainerService.HintSize="1136,1902" sap2010:WorkflowViewState.IdRef="Sequence_1">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="scg:List(x:String)" Name="finalPOList" />
+      <Variable x:TypeArguments="scg:List(x:String)" Name="rejectedPOList" />
+      <Variable x:TypeArguments="scg:List(x:String)" Name="validationMissPOList" />
+      <Variable x:TypeArguments="x:Boolean" Name="extractedFlag" />
+      <Variable x:TypeArguments="x:Boolean" Name="validationFlag" />
+      <Variable x:TypeArguments="x:String" Name="mailBody" />
+    </Sequence.Variables>
+    <sap:WorkflowViewStateService.ViewState>
+      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+        <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+      </scg:Dictionary>
+    </sap:WorkflowViewStateService.ViewState>
+    <Assign sap:VirtualizedContainerService.HintSize="1094,60" sap2010:WorkflowViewState.IdRef="Assign_1">
+      <Assign.To>
+        <OutArgument x:TypeArguments="scg:List(x:String)">[finalPOList]</OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="scg:List(x:String)">[new List(of String)]</InArgument>
+      </Assign.Value>
+    </Assign>
+    <Assign sap:VirtualizedContainerService.HintSize="1094,60" sap2010:WorkflowViewState.IdRef="Assign_2">
+      <Assign.To>
+        <OutArgument x:TypeArguments="scg:List(x:String)">[rejectedPOList]</OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="scg:List(x:String)">[new List(of String)]</InArgument>
+      </Assign.Value>
+    </Assign>
+    <Assign sap:VirtualizedContainerService.HintSize="1094,60" sap2010:WorkflowViewState.IdRef="Assign_3">
+      <Assign.To>
+        <OutArgument x:TypeArguments="scg:List(x:String)">[validationMissPOList]</OutArgument>
+      </Assign.To>
+      <Assign.Value>
+        <InArgument x:TypeArguments="scg:List(x:String)">[new List(of String)]</InArgument>
+      </Assign.Value>
+    </Assign>
+    <ui:ForEach x:TypeArguments="x:String" CurrentIndex="{x:Null}" DisplayName="For Each" sap:VirtualizedContainerService.HintSize="1094,1049" sap2010:WorkflowViewState.IdRef="ForEach`1_1" Values="[emailBody.Split(Environment.NewLine.ToArray,StringSplitOptions.RemoveEmptyEntries)]">
+      <ui:ForEach.Body>
+        <ActivityAction x:TypeArguments="x:String">
+          <ActivityAction.Argument>
+            <DelegateInArgument x:TypeArguments="x:String" Name="line" />
+          </ActivityAction.Argument>
+          <Sequence DisplayName="Body" sap:VirtualizedContainerService.HintSize="1058,915" sap2010:WorkflowViewState.IdRef="Sequence_2">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+            <Assign sap:VirtualizedContainerService.HintSize="1016,60" sap2010:WorkflowViewState.IdRef="Assign_4">
+              <Assign.To>
+                <OutArgument x:TypeArguments="x:String">[line]</OutArgument>
+              </Assign.To>
+              <Assign.Value>
+                <InArgument x:TypeArguments="x:String">[line.Trim]</InArgument>
+              </Assign.Value>
+            </Assign>
+            <If Condition="[line.Length &gt; 30 OR line.Length &lt; 2 OR line.Contains(&quot; &quot;) OR line.Contains(&quot;,&quot;) OR line.Contains(&quot;.&quot;) or line.Contains(&quot;/&quot;)]" sap:VirtualizedContainerService.HintSize="1016,723" sap2010:WorkflowViewState.IdRef="If_1">
+              <If.Then>
+                <ui:Continue sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="Continue_1" />
+              </If.Then>
+              <If.Else>
+                <Sequence sap:VirtualizedContainerService.HintSize="771,575" sap2010:WorkflowViewState.IdRef="Sequence_3">
+                  <sap:WorkflowViewStateService.ViewState>
+                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                    </scg:Dictionary>
+                  </sap:WorkflowViewStateService.ViewState>
+                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke Workflow File" sap:VirtualizedContainerService.HintSize="729,87" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_1" UnSafe="False" WorkflowFileName="MarkPOForExtraction.xaml">
+                    <ui:InvokeWorkflowFile.Arguments>
+                      <InArgument x:TypeArguments="ui:DatabaseConnection" x:Key="con">[Con]</InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="PO">[line]</InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="destination">TLO</InArgument>
+                      <OutArgument x:TypeArguments="x:Boolean" x:Key="extractedFlag">[extractedFlag]</OutArgument>
+                      <OutArgument x:TypeArguments="x:Boolean" x:Key="validationFlag">[validationFlag]</OutArgument>
+                    </ui:InvokeWorkflowFile.Arguments>
+                  </ui:InvokeWorkflowFile>
+                  <If Condition="[extractedFlag = True]" sap:VirtualizedContainerService.HintSize="729,356" sap2010:WorkflowViewState.IdRef="If_3">
+                    <If.Then>
+                      <AddToCollection x:TypeArguments="x:String" Collection="[finalPOList]" DisplayName="Add To Collection" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AddToCollection`1_1" Item="[line]" />
+                    </If.Then>
+                    <If.Else>
+                      <If Condition="[validationFlag = True]" sap:VirtualizedContainerService.HintSize="484,208" sap2010:WorkflowViewState.IdRef="If_2">
+                        <If.Then>
+                          <AddToCollection x:TypeArguments="x:String" Collection="[rejectedPOList]" DisplayName="Add To Collection" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AddToCollection`1_2" Item="[line]" />
+                        </If.Then>
+                        <If.Else>
+                          <AddToCollection x:TypeArguments="x:String" Collection="[validationMissPOList]" DisplayName="Add To Collection" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="AddToCollection`1_3" Item="[line]" />
+                        </If.Else>
+                      </If>
+                    </If.Else>
+                  </If>
+                </Sequence>
+              </If.Else>
+            </If>
+          </Sequence>
+        </ActivityAction>
+      </ui:ForEach.Body>
+    </ui:ForEach>
+    <ui:InvokeCode ContinueOnError="{x:Null}" Code="Dim newline As String = System.Environment.NewLine&#xD;&#xA;&#xD;&#xA;body = &quot;*** DO NOT REPLY Auto Generated Email.*** &lt;br&gt;&lt;br&gt;&quot; &amp; _&#xD;&#xA;&#x9;&#x9;&#x9;&quot;The below POs have been marked for extraction.&quot; &amp; _&#xD;&#xA;&#x9;&#x9;&#x9;&quot;&lt;br&gt;&quot; &amp;&#x9;String.Join(&quot;&lt;br&gt;&quot;, finalPOList) &amp; _&#xD;&#xA;&#x9;&#x9;&#x9;&quot;&lt;br&gt;The below POs were rejected because shiproute does not match.&quot; &amp; _&#xD;&#xA;&#x9;&#x9;&#x9;&quot;&lt;br&gt;&quot; &amp;&#x9;String.Join(&quot;&lt;br&gt;&quot;, validationMissPOList) &amp; _&#xD;&#xA;&#x9;&#x9;&#x9;&quot;&lt;br&gt;&quot; &amp; &quot;&lt;br&gt;&quot; &amp; &quot;The below POs were not found in the database&quot; &amp; _&#xD;&#xA;&#x9;&#x9;&#x9;&quot;&lt;br&gt;&quot; &amp; String.Join(&quot;&lt;br&gt;&quot;, rejectedPOList)&#xD;&#xA;&#x9;" DisplayName="Invoke code" sap:VirtualizedContainerService.HintSize="1094,164" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
+      <ui:InvokeCode.Arguments>
+        <OutArgument x:TypeArguments="x:String" x:Key="body" />
+        <InArgument x:TypeArguments="scg:List(x:String)" x:Key="finalPOList">[finalPOList]</InArgument>
+        <InArgument x:TypeArguments="scg:List(x:String)" x:Key="rejectedPOList">[rejectedPOList]</InArgument>
+        <InArgument x:TypeArguments="scg:List(x:String)" x:Key="validationMissPOList">[validationMissPOList]</InArgument>
+      </ui:InvokeCode.Arguments>
+    </ui:InvokeCode>
+    <ui:SendMail Bcc="{x:Null}" Cc="{x:Null}" Email="{x:Null}" MailMessage="{x:Null}" Password="{x:Null}" Port="{x:Null}" TimeoutMS="{x:Null}" Body="[mailBody]" DisplayName="Send SMTP Mail Message" EnableSSL="True" From="RPA-BOT-11@vfc.com" sap:VirtualizedContainerService.HintSize="1094,145" sap2010:WorkflowViewState.IdRef="SendMail_1" IsBodyHtml="False" Name="RPA-BOT-11@vfc.com" SecureConnection="Auto" Server="itxf2aln09.vfc.com" Subject="[&quot;RPA BOT for PO extract at &quot; +date.Now.ToString(&quot;MMddyyyTHHmmss&quot;)]" To="Garimalla_shanmukhasriniivas@vfc.com">
+      <ui:SendMail.Files>
+        <scg:List x:TypeArguments="InArgument(x:String)" Capacity="0" />
+      </ui:SendMail.Files>
+    </ui:SendMail>
+  </Sequence>
+</Activity>
